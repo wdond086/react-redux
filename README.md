@@ -380,3 +380,139 @@ module.exports.iceCreamActions = iceCreamSlice.actions
 - We can also use asynchronous actions using RTK's `createAsyncThunk` method.
 - The method takes two parameters, the action type and a callback, where the asynchronous code is executed is called.
 - The method automatically generates the pending, fulfilled and rejected actions types.
+
+# React Redux
+
+## Setting up a React App with Redux
+
+- To use redux in a react app, we need to use the `Provider` from the react-redux library and pass our `store` to it as shown below.
+
+```jsx
+import React from 'react'
+import ReactDOM from 'react-dom/client'
+import { Provider } from 'react-redux'
+import App from './App'
+import './index.css'
+import store from './app/store'
+
+ReactDOM.createRoot(document.getElementById('root')).render(
+  <React.StrictMode>
+    <Provider store={store}>
+      <App />
+    </Provider>
+  </React.StrictMode>
+)
+```
+
+## The useSelector Hook
+
+- It is used to get hold of any state maintained in the redux store.
+- We import it from react-redux.
+- The useSelector hook takes a function as its parameter. This function is called the `selector function`.
+- We can now use the result of the `useSelector` hook to access the properties of that state.
+- Below, is an example for the _CakeView_.
+
+```jsx
+import React from 'react'
+import { useSelector } from 'react-redux'
+
+export const CakeView = () => {
+
+  const numOfCakes = useSelector((state) => {
+    return state.cake.numOfCakes;
+  });
+
+  return (
+    <div>
+        <h2>Number of Cakes - {numOfCakes}</h2>
+        <button>Order Cake</button>
+        <button>Restock Cakes</button>
+    </div>
+  )
+}
+```
+
+## The useDispatch Hook
+
+- This is used to dispatch an action in React-Redux.
+- A call to `useDispatch` returns a reference to the store's `dispatch` method.
+- Using that, we can dispatch actions as shown in the example below. Refer to [IceCreamView.jsx](./react-rtk-demo/src/features/icecream/IceCreamView.jsx)
+
+```jsx
+import React from 'react'
+import { useSelector, useDispatch } from 'react-redux'
+import { ordered, restocked } from './iceCreamSlice';
+import { useState } from 'react';
+
+export const IceCreamView = () => {
+
+  const [value, setValue] = useState(1);
+
+  const dispatch = useDispatch();
+
+  const numOfIceCreams = useSelector((state) => {
+    return state.iceCream.numOfIceCreams;
+  })
+
+  const orderIceCream = () => {
+    dispatch(ordered());
+  }
+
+  const restockIceCream = () => {
+    dispatch(restocked(value));
+  }
+
+  const updateValue = (event) => {
+    setValue(parseInt(event.target.value));
+  }
+
+  return (
+    <div>
+        <h2>Number of IceCream - {numOfIceCreams}</h2>
+        <button onClick={orderIceCream}>Order IceCream</button>
+        <input type="number" value={value} onChange={(event) => updateValue(event)}></input>
+        <button onClick={restockIceCream}>Restock IceCreams</button>
+    </div>
+  )
+}
+
+```
+
+- Here is an example combining everything together to fetch data and present i on the UI. (Refer to [UserView.jsx](./react-rtk-demo/src/features/user/UserView.jsx))
+
+```jsx
+import React, { useEffect } from 'react'
+import { useDispatch, useSelector } from 'react-redux'
+import { fetchUsers } from './userSlice'
+
+export const UserView = () => {
+
+  const dispatch = useDispatch();
+
+  const users = useSelector((state) => {
+    return state.users;
+  })
+
+  useEffect(() => {
+    dispatch(fetchUsers());
+  }, [])
+
+  return (
+    <div>
+        <h2>List of Users</h2>
+        { users.loading && <div>Loading...</div> }
+        { !users.loading && users.error ? <div>Error Message: {users.error}</div> : null}
+        { !users.loading && users.users.length ? (
+          <ul>
+            {
+              users.users.map(user => (
+                <li key={user.id}>{user.name}</li>
+              ))
+            }
+          </ul>
+        ) : null}
+    </div>
+  )
+}
+
+```
